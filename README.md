@@ -4,7 +4,9 @@ A simple PHP library for posting to X (Twitter) using API v2.
 
 ## Installation
 
+```bash
 composer require codechap/x:dev-master
+```
 
 ## Example
 
