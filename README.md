@@ -64,19 +64,3 @@ $msg->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 $post->post($msg);
 echo "Single post successful!";
 ```
-
-That's it! Check the source code for more features like posting threads and handling media uploads.
-
-## Features
-
-- OAuth 1.0a authentication
-- Post single tweets
-- Create tweet threads (up to 25 tweets)
-- Upload media (images)
-- Automatic retry mechanism for failed requests
-- Rate limiting protection
-- Comprehensive error handling
-
-## Requirements
-
-- PHP 8.2 or higher
