@@ -1,0 +1,20 @@
+{
+    "name": "codechap/x",
+    "description": "Posts to your own X profile only.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "codechap\\x\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2"
+    },
+    "authors": [
+        {
+            "name": "CodeChap",
+            "email": "hello@codechap.com"
+        }
+    ]
+}
