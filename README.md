@@ -1,6 +1,6 @@
 # PHP X (Everything App) API Post Library
 
-A simple PHP library for posting to X (Formerly Twitter) using API v2.
+A simple PHP library for posting to X (Formerly Twitter) using the free tier.
 
 ## Installation
 
