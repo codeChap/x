@@ -9,6 +9,19 @@ $accessTokenSecret = file_get_contents(realpath(__DIR__ . '/../../') . '/X-ACCES
 
 use codechap\x\x;
 use codechap\x\msg;
+use codechap\x\Requests\me;
+
+
+$client = new x();
+$client->set('apiKey', $apiKey);
+$client->set('apiKeySecret', $apiKeySecret);
+$client->set('accessToken', $accessToken);
+$client->set('accessTokenSecret', $accessTokenSecret);
+$client->init();
+$userInfo = $client->me();
+echo "Hello, " . $userInfo['data']['name'] . "!\n";
+
+die();
 
 // Create thread messages
 $threadPartA = new msg();
@@ -18,19 +31,6 @@ $threadPartA->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 $threadPartB = new msg();
 $threadPartB->set('content', 'Hello, X! This is the second message.');
 $threadPartB->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
-
-// Initialize X client for thread
-$threadPoster = new x();
-$threadPoster->set('apiKey', $apiKey);
-$threadPoster->set('apiKeySecret', $apiKeySecret);
-$threadPoster->set('accessToken', $accessToken);
-$threadPoster->set('accessTokenSecret', $accessTokenSecret);
-$threadPoster->init();
-
-// Post thread
-$thread = [$threadPartA, $threadPartB];
-$threadPoster->post($thread);
-echo "Thread posted successfully!\n";
 
 // Single post example
 $post = new x();
@@ -46,3 +46,16 @@ $msg->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
 $post->post($msg);
 echo "Single post successful!";
+
+// Initialize X client for thread
+$threadPoster = new x();
+$threadPoster->set('apiKey', $apiKey);
+$threadPoster->set('apiKeySecret', $apiKeySecret);
+$threadPoster->set('accessToken', $accessToken);
+$threadPoster->set('accessTokenSecret', $accessTokenSecret);
+$threadPoster->init();
+
+// Post thread
+$thread = [$threadPartA, $threadPartB];
+$threadPoster->post($thread);
+echo "Thread posted successfully!\n";

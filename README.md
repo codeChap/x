@@ -64,3 +64,21 @@ $msg->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 $post->post($msg);
 echo "Single post successful!";
 ```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use codechap\x\x;
+
+// Get your user info
+$client = new x();
+$client->set('apiKey', $apiKey);
+$client->set('apiKeySecret', $apiKeySecret);
+$client->set('accessToken', $accessToken);
+$client->set('accessTokenSecret', $accessTokenSecret);
+$client->init();
+$userInfo = $client->me();
+echo "Hello, " . $userInfo['data']['name'] . "!\n";
+```

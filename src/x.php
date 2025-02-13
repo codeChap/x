@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace codechap\x;
 
 use codechap\x\Traits\getSet;
+use codechap\x\Requests\post;
+use codechap\x\Requests\me;
 
 class x {
 
@@ -30,21 +32,6 @@ class x {
     public string $accessTokenSecret;
 
     /**
-     * @var array Supported media types for uploads
-     */
-    private const SUPPORTED_MEDIA_TYPES = [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'image/webp'
-    ];
-
-    /**
-     * @var int Maximum file size in bytes (5MB)
-     */
-    private const MAX_MEDIA_SIZE = 5242880;
-
-    /**
      * @var array Additional constants for API configuration
      */
     private const API_ENDPOINTS = [
@@ -54,7 +41,6 @@ class x {
     
     private const RATE_LIMIT_WINDOW = 900; // 15 minutes in seconds
     private const MAX_TWEETS_PER_WINDOW = 300;
-    private const THREAD_DELAY_MS = 500000; // 500ms between thread tweets
     
     /**
      * @var array Cache for OAuth headers
@@ -122,9 +108,10 @@ class x {
      * @param string $timestamp OAuth timestamp
      * @param string $nonce OAuth nonce
      * @param string $url Optional specific URL for signature
+     * @param string $method HTTP method (GET/POST)
      * @return string Base string
      */
-    private function createSignatureBaseString($timestamp, $nonce, $url = '')
+    private function createSignatureBaseString($timestamp, $nonce, $url = '', $method = 'POST')
     {
         $params = [
             'oauth_consumer_key'     => $this->apiKey,
@@ -144,7 +131,8 @@ class x {
         // Fix: Use the correct URL or default to tweets endpoint
         $targetUrl = $url ?: $this->baseUrl . self::API_ENDPOINTS['TWEETS'];
         
-        $baseString = 'POST&' . rawurlencode($targetUrl) . '&' . rawurlencode($paramStr);
+        // Use the correct HTTP method in the base string
+        $baseString = $method . '&' . rawurlencode($targetUrl) . '&' . rawurlencode($paramStr);
         
         return $baseString;
     }
@@ -154,11 +142,12 @@ class x {
      * @param string $timestamp OAuth timestamp
      * @param string $nonce OAuth nonce
      * @param string $url Optional specific URL for signature
+     * @param string $method HTTP method (GET/POST)
      * @return string Signature
      */
-    private function generateSignature($timestamp, $nonce, $url = '')
+    private function generateSignature($timestamp, $nonce, $url = '', $method = 'POST')
     {
-        $signatureBaseStr = $this->createSignatureBaseString($timestamp, $nonce, $url);
+        $signatureBaseStr = $this->createSignatureBaseString($timestamp, $nonce, $url, $method);
         $signingKey = rawurlencode($this->apiKeySecret) . '&' . 
                      rawurlencode($this->accessTokenSecret);
         
@@ -168,11 +157,12 @@ class x {
     /**
      * Generates and caches OAuth headers
      * @param string $url Optional specific URL for headers
+     * @param string $method HTTP method (GET/POST)
      * @return array
      */
-    private function generateOAuthHeaders(string $url = ''): array
+    private function generateOAuthHeaders(string $url = '', string $method = 'POST'): array
     {
-        $cacheKey = $url ?: 'default';
+        $cacheKey = $method . ':' . ($url ?: 'default');
         
         if (isset($this->oauthHeadersCache[$cacheKey]) && 
             (time() - $this->oauthHeadersCache[$cacheKey]['timestamp'] < 300)) {
@@ -181,7 +171,7 @@ class x {
 
         $oauthTimestamp = time();
         $oauthNonce = bin2hex(random_bytes(16));
-        $signature = $this->generateSignature($oauthTimestamp, $oauthNonce, $url);
+        $signature = $this->generateSignature($oauthTimestamp, $oauthNonce, $url, $method);
 
         $headers = [
             'Authorization: OAuth ' .
@@ -212,135 +202,49 @@ class x {
      */
     public function post($message)
     {
-        if (empty($message)) {
-            throw new \Exception('Invalid message format');
-        }
-
-        if(!is_array($message)) {
-            $message = [$message];
-        }
-
-        // Determine the type of tweet
-        $type = count($message) > 1 ? 'thread' : 'standard';
-
-        switch ($type) {
-            case 'standard':
-                $params = ["text" => $message[0]->content];
-                if (!empty($message[0]->image)) {
-                    $pathToImage = $this->validateImage($message[0]->image);
-                    $mediaId = $this->uploadMedia($pathToImage);
-                    $params['media'] = ['media_ids' => [$mediaId]];
-                }
-                $result = $this->makeRequest(self::API_ENDPOINTS['TWEETS'], $params);
-                break;
-                
-            case 'thread':
-                $result = $this->postThread($message);
-                break;
-                
-            default:
-                throw new \Exception("Unknown tweet type: {$type}");
-        }
-
-        return $result;
-    }
-
-    /**
-     * Validates image file before upload
-     * @param string $imagePath Path to image file
-     * @return string Validated full path to image
-     * @throws \Exception If image is invalid
-     */
-    private function validateImage($imagePath)
-    {
-        if (!file_exists($imagePath)) {
-            throw new \Exception("Image not found: {$imagePath}");
-        }
-
-        if (filesize($imagePath) > self::MAX_MEDIA_SIZE) {
-            throw new \Exception("Image size exceeds maximum allowed size of 5MB");
-        }
-
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $imagePath);
-        finfo_close($finfo);
-
-        if (!in_array($mimeType, self::SUPPORTED_MEDIA_TYPES)) {
-            throw new \Exception("Unsupported image type: {$mimeType}");
-        }
-
-        return $imagePath;
-    }
-
-    /**
-     * Posts a thread of tweets
-     * @param array $message The messages to post as thread
-     * @return array The last tweet response
-     * @throws \Exception If thread posting fails
-     */
-    private function postThread($message)
-    {
-        if (count($message) > 25) {
-            throw new \Exception("Thread exceeds maximum allowed tweets (25)");
-        }
-
-        $previousTweetId = null;
-        $lastResult = null;
-
-        foreach ($message as $tweet) {
-            if (empty($tweet->content)) {
-                continue;
-            }
-
-            $params = ["text" => $tweet->content];
-            if ($previousTweetId) {
-                $params["reply"] = ["in_reply_to_tweet_id" => $previousTweetId];
-            }
-
-            // Handle images in thread tweets if present
-            if (!empty($tweet->image)) {
-                $pathToImage = $this->validateImage($tweet->image);
-                $mediaId = $this->uploadMedia($pathToImage);
-                $params['media'] = ['media_ids' => [$mediaId]];
-            }
-
-            $lastResult = $this->makeRequest(self::API_ENDPOINTS['TWEETS'], $params);
-            $previousTweetId = $lastResult['data']['id'];
-
-            // Add small delay between tweets to prevent rate limiting
-            usleep(self::THREAD_DELAY_MS); // 500ms delay
-        }
-
-        return $lastResult;
+        $poster = new post($this);
+        return $poster->send($message);
     }
 
     /**
      * Makes an API request to X/Twitter with retry mechanism
      * @throws \Exception
      */
-    private function makeRequest(string $endpoint, array $data = [], string $method = 'POST', int $retries = 3): array
+    public function makeRequest(string $endpoint, array $data = [], string $method = 'POST', int $retries = 3, bool $isMediaUpload = false): array
     {
         $this->checkRateLimit();
         $lastException = null;
 
         for ($i = 0; $i < $retries; $i++) {
             try {
-                $url = $this->baseUrl . $endpoint;
-                $headers = $this->generateOAuthHeaders($url);
+                $url = $isMediaUpload ? self::API_ENDPOINTS['MEDIA_UPLOAD'] : $this->baseUrl . $endpoint;
+                $headers = $this->generateOAuthHeaders($url, $method);
                 
                 $ch = curl_init($url);
-                curl_setopt_array($ch, [
+                $curlOpts = [
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_HTTPHEADER     => $headers,
                     CURLOPT_CUSTOMREQUEST  => $method,
                     CURLOPT_SSL_VERIFYPEER => true,
                     CURLOPT_VERBOSE        => false,
                     CURLOPT_TIMEOUT        => 10
-                ]);
+                ];
 
-                if ($data) {
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                if ($data && $method !== 'GET') {
+                    if (isset($data['multipart'])) {
+                        // For media uploads
+                        $curlOpts[CURLOPT_POST] = true;
+                        $curlOpts[CURLOPT_POSTFIELDS] = $data['multipart']['data'];
+                        // Remove Content-Type header for multipart uploads
+                        $curlOpts[CURLOPT_HTTPHEADER] = array_filter($headers, function($header) {
+                            return !str_starts_with($header, 'Content-Type:');
+                        });
+                    } else {
+                        $curlOpts[CURLOPT_POSTFIELDS] = json_encode($data);
+                    }
                 }
+
+                curl_setopt_array($ch, $curlOpts);
 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -375,103 +279,13 @@ class x {
     }
 
     /**
-     * Uploads media to X/Twitter
-     * @param string $imagePath Path to image file
-     * @return string Media ID
-     * @throws \Exception If upload fails
+     * Gets information about the authenticated user
+     * @return array Response data
+     * @throws \Exception If request fails
      */
-    private function uploadMedia($imagePath)
+    public function me(): array
     {
-        // Read image file
-        $imageData = file_get_contents($imagePath);
-        if ($imageData === false) {
-            throw new \Exception("Failed to read image file: {$imagePath}");
-        }
-
-        // Get MIME type
-        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $imagePath);
-        finfo_close($finfo);
-
-        // For media upload, we need to use v1.1 API endpoint
-        $mediaUploadUrl = self::API_ENDPOINTS['MEDIA_UPLOAD'];
-        
-        // Generate new OAuth parameters for media upload
-        $oauthTimestamp = time();
-        $oauthNonce = bin2hex(random_bytes(16));
-        
-        // Create signature base string for media upload
-        $params = [
-            'oauth_consumer_key'     => $this->apiKey,
-            'oauth_nonce'            => $oauthNonce,
-            'oauth_signature_method' => 'HMAC-SHA1',
-            'oauth_timestamp'        => $oauthTimestamp,
-            'oauth_token'            => $this->accessToken,
-            'oauth_version'          => '1.0'
-        ];
-        
-        // Sort parameters alphabetically
-        ksort($params);
-        
-        $paramStr = http_build_query($params);
-        $paramStr = str_replace(['+', '%7E'], ['%20', '~'], $paramStr);
-        
-        $baseString = 'POST&' . rawurlencode($mediaUploadUrl) . '&' . rawurlencode($paramStr);
-        $signingKey = rawurlencode($this->apiKeySecret) . '&' . 
-                     rawurlencode($this->accessTokenSecret);
-        
-        $signature = base64_encode(hash_hmac('sha1', $baseString, $signingKey, true));
-        
-        // Create OAuth header for media upload
-        $authHeader = 'Authorization: OAuth ' .
-            'oauth_consumer_key="' . rawurlencode($this->apiKey) . '",' .
-            'oauth_nonce="' . rawurlencode($oauthNonce) . '",' .
-            'oauth_signature="' . rawurlencode($signature) . '",' .
-            'oauth_signature_method="HMAC-SHA1",' .
-            'oauth_timestamp="' . rawurlencode((string)$oauthTimestamp) . '",' .
-            'oauth_token="' . rawurlencode($this->accessToken) . '",' .
-            'oauth_version="1.0"';
-
-        // Prepare upload parameters
-        $boundary = uniqid();
-        $postFields = '';
-        $postFields .= "--{$boundary}\r\n";
-        $postFields .= "Content-Disposition: form-data; name=\"media\"; filename=\"media\"\r\n";
-        $postFields .= "Content-Type: {$mimeType}\r\n\r\n";
-        $postFields .= $imageData . "\r\n";
-        $postFields .= "--{$boundary}--\r\n";
-
-        $ch = curl_init($mediaUploadUrl);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_HTTPHEADER     => [
-                $authHeader,
-                "Content-Type: multipart/form-data; boundary={$boundary}"
-            ],
-            CURLOPT_POSTFIELDS     => $postFields,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_VERBOSE        => false
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
-        if (curl_errno($ch)) {
-            throw new \Exception('Curl error: ' . curl_error($ch));
-        }
-        
-        curl_close($ch);
-
-        if ($httpCode !== 200) {
-            throw new \Exception("Media upload failed (HTTP {$httpCode}): " . $response);
-        }
-
-        $result = json_decode($response, true);
-        if (!isset($result['media_id_string'])) {
-            throw new \Exception('Media upload failed: No media ID in response');
-        }
-
-        return $result['media_id_string'];
+        $meRequest = new me($this);
+        return $meRequest->get();
     }
 } 
