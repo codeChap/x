@@ -5,9 +5,9 @@ $apiKeySecret = file_get_contents(realpath(__DIR__ . '/../../') . '/X-API-KEY-SE
 $callbackUrl = 'http://localhost:8080/callback';
 require 'vendor/autoload.php';
 
-use codechap\x\x;
+use codechap\x\X;
 
-$c = new x();
+$c = new X();
 $c->set('apiKey', $apiKey);
 $c->set('apiKeySecret', $apiKeySecret);
 $authUrl = $c->getAuthUrlFor($callbackUrl);

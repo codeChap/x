@@ -2,10 +2,10 @@
 
 namespace codechap\x\Auth;
 
-use codechap\x\Traits\OAuth1Trait;
+use codechap\x\Traits\OAuthTrait;
 
 class XAuth {
-    use OAuth1Trait;
+    use OAuthTrait;
 
     private string $apiKey;
     private string $apiKeySecret;
