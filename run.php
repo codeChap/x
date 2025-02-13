@@ -4,29 +4,26 @@ require 'vendor/autoload.php';
 
 $apiKey = file_get_contents(realpath(__DIR__ . '/../../') . '/X-API-KEY.txt');
 $apiKeySecret = file_get_contents(realpath(__DIR__ . '/../../') . '/X-API-KEY-SECRET.txt');
-$accessToken = file_get_contents(realpath(__DIR__ . '/../../') . '/X-ACCESS-TOKEN.txt');
-$accessTokenSecret = file_get_contents(realpath(__DIR__ . '/../../') . '/X-ACCESS-TOKEN-SECRET.txt');
+$accessToken = file_get_contents(sys_get_temp_dir() . '/X-ACCESS-TOKEN.txt');
+$accessTokenSecret = file_get_contents(sys_get_temp_dir() . '/X-ACCESS-TOKEN-SECRET.txt');
 
-use codechap\x\x;
-use codechap\x\msg;
-use codechap\x\Requests\me;
+use codechap\x\X;
+use codechap\x\Msg;
 
-
-$client = new x();
+$client = new X();
 $client->set('apiKey', $apiKey);
 $client->set('apiKeySecret', $apiKeySecret);
 $client->set('accessToken', $accessToken);
 $client->set('accessTokenSecret', $accessTokenSecret);
-$client->init();
 $userInfo = $client->me();
 echo "Hello, " . $userInfo['data']['name'] . "!\n";
 
 // Create thread messages
-$threadPartA = new msg();
+$threadPartA = new Msg();
 $threadPartA->set('content', 'Hello, X!');
 $threadPartA->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
-$threadPartB = new msg();
+$threadPartB = new Msg();
 $threadPartB->set('content', 'Hello, X! This is the second message.');
 $threadPartB->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
@@ -36,24 +33,14 @@ $post->set('apiKey', $apiKey);
 $post->set('apiKeySecret', $apiKeySecret);
 $post->set('accessToken', $accessToken);
 $post->set('accessTokenSecret', $accessTokenSecret);
-$post->init();
+$post->post($threadPartA);
 
-$msg = new msg();
-$msg->set('content', 'Hello, X!');
-$msg->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
-
-$post->post($msg);
-echo "Single post successful!";
-
-// Initialize X client for thread
-$threadPoster = new x();
+// Thread post exmple
+$threadPoster = new X();
 $threadPoster->set('apiKey', $apiKey);
 $threadPoster->set('apiKeySecret', $apiKeySecret);
 $threadPoster->set('accessToken', $accessToken);
 $threadPoster->set('accessTokenSecret', $accessTokenSecret);
-$threadPoster->init();
-
-// Post thread
 $thread = [$threadPartA, $threadPartB];
 $threadPoster->post($thread);
 echo "Thread posted successfully!\n";

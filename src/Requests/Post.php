@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace codechap\x\Requests;
 
-use codechap\x\x;
+use codechap\x\Call;
 
-class post {
+class Post {
     private const MAX_THREAD_LENGTH = 25;
     private const THREAD_DELAY_MS = 500000; // 500ms between thread tweets
     
@@ -25,11 +25,11 @@ class post {
      */
     private const MAX_MEDIA_SIZE = 5242880;
 
-    private $client;
+    private $call;
 
-    public function __construct(x $client) 
+    public function __construct(call $call) 
     {
-        $this->client = $client;
+        $this->call = $call;
     }
 
     /**
@@ -59,7 +59,7 @@ class post {
                     $mediaId = $this->uploadMedia($pathToImage);
                     $params['media'] = ['media_ids' => [$mediaId]];
                 }
-                $result = $this->client->makeRequest('/tweets', $params);
+                $result = $this->call->makeRequest('/tweets', $params);
                 break;
                 
             case 'thread':
@@ -105,7 +105,7 @@ class post {
                 $params['media'] = ['media_ids' => [$mediaId]];
             }
 
-            $lastResult = $this->client->makeRequest('/tweets', $params);
+            $lastResult = $this->call->makeRequest('/tweets', $params);
             $previousTweetId = $lastResult['data']['id'];
 
             // Add small delay between tweets to prevent rate limiting
@@ -159,11 +159,11 @@ class post {
         $media = new \CURLFile($imagePath, $mimeType, 'media');
 
         // Send the request with just the media parameter
-        $result = $this->client->makeRequest('/media/upload', [
+        $result = $this->call->makeRequest('/media/upload', [
             'multipart' => [
                 'data' => ['media' => $media]
             ]
-        ], 'POST', 3, true);
+        ], 'POST', true);
 
         if (!isset($result['media_id_string'])) {
             throw new \Exception('Media upload failed: No media ID in response');

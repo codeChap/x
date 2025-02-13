@@ -2,11 +2,11 @@
 
 namespace codechap\x;
 
-use codechap\x\Traits\getSet;
+use codechap\x\Traits\GetSet;
 
-class msg {
+class Msg {
 
-    use getSet;
+    use GetSet;
 
     /**
      * @var string

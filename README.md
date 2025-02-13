@@ -33,7 +33,6 @@ $threadPoster->set('apiKey', $apiKey);
 $threadPoster->set('apiKeySecret', $apiKeySecret);
 $threadPoster->set('accessToken', $accessToken);
 $threadPoster->set('accessTokenSecret', $accessTokenSecret);
-$threadPoster->init();
 
 // Post thread
 $thread = [$threadPartA, $threadPartB];
@@ -55,7 +54,6 @@ $post->set('apiKey', $apiKey);
 $post->set('apiKeySecret', $apiKeySecret);
 $post->set('accessToken', $accessToken);
 $post->set('accessTokenSecret', $accessTokenSecret);
-$post->init();
 
 $msg = new msg();
 $msg->set('content', 'Hello, X!');
@@ -78,7 +76,6 @@ $client->set('apiKey', $apiKey);
 $client->set('apiKeySecret', $apiKeySecret);
 $client->set('accessToken', $accessToken);
 $client->set('accessTokenSecret', $accessTokenSecret);
-$client->init();
 $userInfo = $client->me();
 echo "Hello, " . $userInfo['data']['name'] . "!\n";
 ```

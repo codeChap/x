@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace codechap\x\Requests;
 
-use codechap\x\x;
+use codechap\x\Call;
 
-class me {
-    private $client;
+class Me {
+    private $call;
 
-    public function __construct(x $client) 
+    public function __construct(call $call) 
     {
-        $this->client = $client;
+        $this->call = $call;
     }
 
     /**
@@ -21,11 +21,10 @@ class me {
      */
     public function get(): array
     {
-        return $this->client->makeRequest(
+        return $this->call->makeRequest(
             '/users/me',
             [],
             'GET',
-            3,
             false
         );
     }
