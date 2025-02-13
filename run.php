@@ -21,8 +21,6 @@ $client->init();
 $userInfo = $client->me();
 echo "Hello, " . $userInfo['data']['name'] . "!\n";
 
-die();
-
 // Create thread messages
 $threadPartA = new msg();
 $threadPartA->set('content', 'Hello, X!');
