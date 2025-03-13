@@ -28,7 +28,7 @@ $threadPartB->set('content', 'Hello, X! This is the second message.');
 $threadPartB->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
 // Single post example
-$post = new x();
+$post = new X();
 $post->set('apiKey', $apiKey);
 $post->set('apiKeySecret', $apiKeySecret);
 $post->set('accessToken', $accessToken);

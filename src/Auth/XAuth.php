@@ -119,6 +119,10 @@ class XAuth {
 
         parse_str($response, $accessToken);
 
+        if(!isset($accessToken['oauth_token']) || !isset($accessToken['oauth_token_secret'])) {
+            throw new \Exception('Invalid response from Twitter. Response: ' . $response);
+        }
+
         return [
             'access_token' => $accessToken['oauth_token'],
             'access_token_secret' => $accessToken['oauth_token_secret'],

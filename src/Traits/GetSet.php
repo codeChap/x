@@ -2,7 +2,7 @@
 
 namespace codechap\x\Traits;
 
-trait getSet {
+trait GetSet {
     /**
      * Get a specific property from the service
      *

@@ -9,7 +9,7 @@ use codechap\x\Call;
 class Me {
     private $call;
 
-    public function __construct(call $call) 
+    public function __construct(Call $call)
     {
         $this->call = $call;
     }

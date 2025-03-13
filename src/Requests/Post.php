@@ -9,7 +9,7 @@ use codechap\x\Call;
 class Post {
     private const MAX_THREAD_LENGTH = 25;
     private const THREAD_DELAY_MS = 500000; // 500ms between thread tweets
-    
+
     /**
      * @var array Supported media types for uploads
      */
@@ -27,7 +27,7 @@ class Post {
 
     private $call;
 
-    public function __construct(call $call) 
+    public function __construct(Call $call)
     {
         $this->call = $call;
     }
@@ -61,11 +61,11 @@ class Post {
                 }
                 $result = $this->call->makeRequest('/tweets', $params);
                 break;
-                
+
             case 'thread':
                 $result = $this->postThread($message);
                 break;
-                
+
             default:
                 throw new \Exception("Unknown tweet type: {$type}");
         }
@@ -171,4 +171,4 @@ class Post {
 
         return $result['media_id_string'];
     }
-} 
+}
