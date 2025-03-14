@@ -13,7 +13,7 @@ class OAuth1 {
     private string $accessTokenSecret;
     private array $oauthHeadersCache = [];
 
-    public function __construct(string $apiKey, string $apiKeySecret, string $accessToken, string $accessTokenSecret) 
+    public function __construct(string $apiKey, string $apiKeySecret, string $accessToken, string $accessTokenSecret)
     {
         $this->apiKey = trim($apiKey);
         $this->apiKeySecret = trim($apiKeySecret);
@@ -23,12 +23,13 @@ class OAuth1 {
 
     /**
      * Generates and caches OAuth headers
+     * @return array
      */
     public function generateHeaders(string $url = '', string $method = 'POST'): array
     {
         $cacheKey = $method . ':' . ($url ?: 'default');
-        
-        if (isset($this->oauthHeadersCache[$cacheKey]) && 
+
+        if (isset($this->oauthHeadersCache[$cacheKey]) &&
             (time() - $this->oauthHeadersCache[$cacheKey]['timestamp'] < 300)) {
             return $this->oauthHeadersCache[$cacheKey]['headers'];
         }
@@ -44,9 +45,9 @@ class OAuth1 {
 
         $baseString = $this->createSignatureBaseString($params, $url, $method);
         $signingKey = rawurlencode($this->apiKeySecret) . '&' . rawurlencode($this->accessTokenSecret);
-        
+
         $params['oauth_signature'] = $this->generateSignature($baseString, $signingKey);
-        
+
         $headers = [
             'Authorization: OAuth ' .
                 'oauth_consumer_key="' . rawurlencode($this->apiKey) . '",' .
@@ -67,4 +68,4 @@ class OAuth1 {
 
         return $headers;
     }
-} 
+}

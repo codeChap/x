@@ -2,17 +2,20 @@
 
 namespace codechap\x\Traits;
 
-trait GetSet {
+trait GetSet
+{
     /**
      * Get a specific property from the service
      *
      * @param string $name The property name to get
      * @return mixed The value of the property
      */
-    public function get(string $name)
+    public function get(string $name): mixed
     {
         if (!property_exists($this, $name)) {
-            throw new \InvalidArgumentException(sprintf('Property "%s" does not exist', $name));
+            throw new \InvalidArgumentException(
+                sprintf('Property "%s" does not exist', $name)
+            );
         }
         return $this->$name;
     }
@@ -27,7 +30,9 @@ trait GetSet {
     public function set(string $name, $value): self
     {
         if (!property_exists($this, $name)) {
-            throw new \InvalidArgumentException(sprintf('Property "%s" does not exist', $name));
+            throw new \InvalidArgumentException(
+                sprintf('Property "%s" does not exist', $name)
+            );
         }
         $this->$name = trim($value);
         return $this;

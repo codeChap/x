@@ -1,8 +1,13 @@
 <?php
 
+/**
+ * This file demonstrates how to use the X library to authenticate with the X API.
+ */
+
 $apiKey = file_get_contents(realpath(__DIR__ . '/../../') . '/X-API-KEY.txt');
 $apiKeySecret = file_get_contents(realpath(__DIR__ . '/../../') . '/X-API-KEY-SECRET.txt');
 $callbackUrl = 'http://localhost:8080/callback';
+$params = [];
 require 'vendor/autoload.php';
 
 use codechap\x\X;

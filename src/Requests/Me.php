@@ -6,7 +6,8 @@ namespace codechap\x\Requests;
 
 use codechap\x\Call;
 
-class Me {
+class Me
+{
     private $call;
 
     public function __construct(Call $call)
@@ -21,11 +22,6 @@ class Me {
      */
     public function get(): array
     {
-        return $this->call->makeRequest(
-            '/users/me',
-            [],
-            'GET',
-            false
-        );
+        return $this->call->makeRequest("/users/me", [], "GET", false);
     }
 }

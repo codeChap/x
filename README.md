@@ -15,20 +15,20 @@ composer require codechap/x:dev-master
 
 require 'vendor/autoload.php';
 
-use codechap\x\x;
-use codechap\x\msg;
+use codechap\x\X;
+use codechap\x\Msg;
 
 // Create thread messages
-$threadPartA = new msg();
+$threadPartA = new Msg();
 $threadPartA->set('content', 'Hello, X!');
 $threadPartA->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
-$threadPartB = new msg();
+$threadPartB = new Msg();
 $threadPartB->set('content', 'Hello, X! This is the second message.');
 $threadPartB->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
 // Initialize X client for thread
-$threadPoster = new x();
+$threadPoster = new X();
 $threadPoster->set('apiKey', $apiKey);
 $threadPoster->set('apiKeySecret', $apiKeySecret);
 $threadPoster->set('accessToken', $accessToken);
@@ -45,17 +45,17 @@ echo "Thread posted successfully!\n";
 
 require 'vendor/autoload.php';
 
-use codechap\x\x;
-use codechap\x\msg;
+use codechap\x\X;
+use codechap\x\Msg;
 
 // Single post example
-$post = new x();
+$post = new X();
 $post->set('apiKey', $apiKey);
 $post->set('apiKeySecret', $apiKeySecret);
 $post->set('accessToken', $accessToken);
 $post->set('accessTokenSecret', $accessTokenSecret);
 
-$msg = new msg();
+$msg = new Msg();
 $msg->set('content', 'Hello, X!');
 $msg->set('image', 'img-HrW6drkAzh4UqUaXD3o3H.jpeg');
 
@@ -68,10 +68,10 @@ echo "Single post successful!";
 
 require 'vendor/autoload.php';
 
-use codechap\x\x;
+use codechap\x\X;
 
 // Get your user info
-$client = new x();
+$client = new X();
 $client->set('apiKey', $apiKey);
 $client->set('apiKeySecret', $apiKeySecret);
 $client->set('accessToken', $accessToken);
