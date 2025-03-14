@@ -91,6 +91,7 @@ class XAuth
             );
         }
 
+        $requestToken = [];
         parse_str($response, $requestToken);
 
         if (
@@ -161,6 +162,7 @@ class XAuth
         $response = curl_exec($curl);
         curl_close($curl);
 
+        $accessToken = [];
         parse_str($response, $accessToken);
 
         if (
